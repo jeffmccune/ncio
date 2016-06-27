@@ -14,6 +14,9 @@ Gem::Specification.new do |spec|
   spec.homepage      = "https://www.openinfrastructure.co"
   spec.license       = "MIT"
 
+  # YARD Documentation
+  spec.has_rdoc      = 'yard'
+
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
   # to allow pushing to a single host or delete this section to allow pushing to any host.
   if spec.respond_to?(:metadata)
@@ -30,4 +33,9 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "bundler", "~> 1.12"
   spec.add_development_dependency "rake", "~> 10.0"
   spec.add_development_dependency "rspec", "~> 3.0"
+  spec.add_development_dependency "pry"
+  spec.add_development_dependency "yard", "~> 0.8.7"
+  spec.add_development_dependency "bluecloth", "~> 2.2.0"
+  spec.add_development_dependency "rubocop", "~> 0.41.1"
+  spec.add_development_dependency "simplecov", "~> 0.11.2"
 end

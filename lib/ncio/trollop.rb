@@ -5,6 +5,7 @@
 
 require 'date'
 
+module Ncio
 module Trollop
   # note: this is duplicated in gemspec
   # please change over there too
@@ -859,3 +860,4 @@ end
 
 module_function :options, :die, :educate, :with_standard_exception_handling
 end # module
+end

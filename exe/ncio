@@ -1,3 +1,6 @@
 #!/usr/bin/env ruby
-
-require "ncio"
+require 'ncio'
+require 'ncio/app'
+app = Ncio::App.new
+exit_code = app.run
+Kernel.exit(exit_code)
