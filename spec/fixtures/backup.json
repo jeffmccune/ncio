@@ -1,0 +1,267 @@
+[
+  {
+    "parent": "00000000-0000-4000-8000-000000000000",
+    "environment_trumps": false,
+    "name": "All Nodes",
+    "rule": [
+      "and",
+      [
+        "~",
+        "name",
+        ".*"
+      ]
+    ],
+    "variables": {
+    },
+    "id": "00000000-0000-4000-8000-000000000000",
+    "environment": "production",
+    "classes": {
+    }
+  },
+  {
+    "parent": "af6e6389-5e36-49d5-a321-25c58e56d1f6",
+    "environment_trumps": true,
+    "name": "Agent-specified environment",
+    "variables": {
+    },
+    "id": "31bf873d-a672-4662-9c2f-c70ed59f241a",
+    "environment": "agent-specified",
+    "classes": {
+    }
+  },
+  {
+    "parent": "eb87329f-4874-4852-b833-cf3fb67271c9",
+    "environment_trumps": false,
+    "name": "PE Agent",
+    "rule": [
+      "and",
+      [
+        "~",
+        [
+          "fact",
+          "aio_agent_version"
+        ],
+        ".+"
+      ]
+    ],
+    "variables": {
+    },
+    "id": "42d394f7-1ead-484b-97b5-b455bd852721",
+    "environment": "production",
+    "classes": {
+      "puppet_enterprise::profile::agent": {
+      }
+    }
+  },
+  {
+    "parent": "eb87329f-4874-4852-b833-cf3fb67271c9",
+    "environment_trumps": false,
+    "name": "PE PuppetDB",
+    "rule": [
+      "or",
+      [
+        "=",
+        "name",
+        "master1.puppet.vm"
+      ]
+    ],
+    "variables": {
+    },
+    "id": "57990f8d-baf5-493e-a157-ab19894658d7",
+    "environment": "production",
+    "classes": {
+      "puppet_enterprise::profile::puppetdb": {
+      }
+    }
+  },
+  {
+    "parent": "eb87329f-4874-4852-b833-cf3fb67271c9",
+    "environment_trumps": false,
+    "name": "PE Orchestrator",
+    "rule": [
+      "or",
+      [
+        "=",
+        "name",
+        "master1.puppet.vm"
+      ]
+    ],
+    "variables": {
+    },
+    "id": "7b9b8be7-793b-459f-a18e-5d9febd6c4f1",
+    "environment": "production",
+    "classes": {
+      "puppet_enterprise::profile::orchestrator": {
+      }
+    }
+  },
+  {
+    "parent": "eb87329f-4874-4852-b833-cf3fb67271c9",
+    "environment_trumps": false,
+    "name": "PE ActiveMQ Broker",
+    "rule": [
+      "or",
+      [
+        "=",
+        "name",
+        "master1.puppet.vm"
+      ]
+    ],
+    "variables": {
+    },
+    "id": "8313dbde-bdf9-493c-a5a2-3a37e1b54484",
+    "environment": "production",
+    "classes": {
+      "puppet_enterprise::profile::amq::broker": {
+      }
+    }
+  },
+  {
+    "parent": "00000000-0000-4000-8000-000000000000",
+    "environment_trumps": true,
+    "name": "Production environment",
+    "rule": [
+      "and",
+      [
+        "~",
+        "name",
+        ".*"
+      ]
+    ],
+    "variables": {
+    },
+    "id": "af6e6389-5e36-49d5-a321-25c58e56d1f6",
+    "environment": "production",
+    "classes": {
+    }
+  },
+  {
+    "parent": "eb87329f-4874-4852-b833-cf3fb67271c9",
+    "environment_trumps": false,
+    "name": "PE Certificate Authority",
+    "rule": [
+      "or",
+      [
+        "=",
+        "name",
+        "master1.puppet.vm"
+      ]
+    ],
+    "variables": {
+    },
+    "id": "b949f2ee-0e98-4ce2-923c-bd210ef455fd",
+    "environment": "production",
+    "classes": {
+      "puppet_enterprise::profile::certificate_authority": {
+      }
+    }
+  },
+  {
+    "parent": "eb87329f-4874-4852-b833-cf3fb67271c9",
+    "environment_trumps": false,
+    "name": "PE MCollective",
+    "rule": [
+      "and",
+      [
+        "~",
+        [
+          "fact",
+          "aio_agent_version"
+        ],
+        ".+"
+      ]
+    ],
+    "variables": {
+    },
+    "id": "d711ed19-5a99-4b0c-a759-39ec225a8a9c",
+    "environment": "production",
+    "classes": {
+      "puppet_enterprise::profile::mcollective::agent": {
+      }
+    }
+  },
+  {
+    "parent": "eb87329f-4874-4852-b833-cf3fb67271c9",
+    "environment_trumps": false,
+    "name": "PE Master",
+    "rule": [
+      "or",
+      [
+        "=",
+        "name",
+        "master1.puppet.vm"
+      ]
+    ],
+    "variables": {
+    },
+    "id": "e1ee1064-ef43-4000-9984-f413a2105eb9",
+    "environment": "production",
+    "classes": {
+      "puppet_enterprise::profile::master::mcollective": {
+      },
+      "puppet_enterprise::profile::mcollective::peadmin": {
+      },
+      "puppet_enterprise::profile::master": {
+      },
+      "pe_repo": {
+      },
+      "pe_repo::platform::el_7_x86_64": {
+      }
+    }
+  },
+  {
+    "parent": "00000000-0000-4000-8000-000000000000",
+    "environment_trumps": false,
+    "name": "PE Infrastructure",
+    "variables": {
+    },
+    "id": "eb87329f-4874-4852-b833-cf3fb67271c9",
+    "environment": "production",
+    "classes": {
+      "puppet_enterprise": {
+        "mcollective_middleware_hosts": [
+          "master1.puppet.vm"
+        ],
+        "use_application_services": true,
+        "database_host": "master1.puppet.vm",
+        "puppetdb_host": "master1.puppet.vm",
+        "database_port": "5432",
+        "database_ssl": true,
+        "puppet_master_host": "master1.puppet.vm",
+        "certificate_authority_host": "master1.puppet.vm",
+        "console_port": "443",
+        "puppetdb_database_name": "pe-puppetdb",
+        "puppetdb_database_user": "pe-puppetdb",
+        "pcp_broker_host": "master1.puppet.vm",
+        "puppetdb_port": "8081",
+        "console_host": "master1.puppet.vm"
+      }
+    }
+  },
+  {
+    "parent": "eb87329f-4874-4852-b833-cf3fb67271c9",
+    "environment_trumps": false,
+    "name": "PE Console",
+    "rule": [
+      "or",
+      [
+        "=",
+        "name",
+        "master1.puppet.vm"
+      ]
+    ],
+    "variables": {
+    },
+    "id": "fd3e6081-b6ef-4645-9eca-fc7d28278e6f",
+    "environment": "production",
+    "classes": {
+      "puppet_enterprise::profile::console": {
+      },
+      "pe_console_prune": {
+        "prune_upto": "30"
+      },
+      "puppet_enterprise::license": {
+      }
+    }
+  }
+]

@@ -1,41 +1,83 @@
-# Ncio
+# ncio - Puppet Node Classifier backup / restore
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/ncio`. To experiment with that code, run `bin/console` for an interactive prompt.
+This project implements a small command line utility to backup and restore node
+classification data.  The intended purpose is to backup node classification
+groups on a Primary, monolithic PE master and restore the backup on a secondary
+monolithic PE master.  The purpose is to keep node classification groups in sync
+and ready in the event the secondary master needs to take over service from the
+primary.
 
-TODO: Delete this and the text above, and describe your gem
+
+## Transformation (TODO)
+
+To achieve the goal of replicating node classification groups from one PE
+monolithic master to a secondary monolithic master, certain values need to be
+transformed.  For example, consider a primary named `master1.puppet.vm` and a
+secondary named `master2.puppet.vm`  Both are monolithic masters.  When the
+backup is taken on the primary, the hostname will be embedded in the data.  This
+is problematic because it will cause mis-configuration errors when imported into
+the secondary which has a different name.
+
+To illustrate, consider the PuppetDB classification group:
+
+    {
+      "name": "PE PuppetDB",
+      "rule": [
+        "or",
+        [
+          "=",
+          "name",
+          "master1.puppet.vm"
+        ]
+      ],
+      "classes": {
+        "puppet_enterprise::profile::puppetdb": {
+        }
+      }
+    }
+
+This group will need to have `"master1.puppet.vm"` transformed to
+`"master2.puppet.vm"` when imported for replication purposes.
 
 ## Installation
 
-Add this line to your application's Gemfile:
+Install this tool on the same node running the node classification service:
 
-```ruby
-gem 'ncio'
-```
-
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install ncio
+    $ sudo /opt/puppetlabs/puppet/bin/gem install ncio
+    Successfully installed ncio-0.1.0
+    Parsing documentation for ncio-0.1.0
+    Installing ri documentation for ncio-0.1.0
+    Done installing documentation for ncio after 0 seconds
+    1 gem installed
 
 ## Usage
 
-TODO: Write usage instructions here
+If the file `/etc/puppetlabs/puppet/ssl/certs/pe-internal-orchestrator.pem`
+exists on the same node as the Node Classifier, then no configuration is
+necessary.  The default options will work to backup and restore node
+classification data.
 
-## Development
+    sudo -H -u pe-puppet /opt/puppetlabs/puppet/bin/ncio backup > /var/tmp/backup.json
+    I, [2016-06-28T19:25:55.507684 #2992]  INFO -- : Backup completed successfully!
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+If this file does not exist, ncio will need to use a different client
+certificate.  It is recommended to use the same certificate used by the Puppet
+Agent, which should be white-listed for node classification API access.  The
+white-list of certificates is located at
+`/etc/puppetlabs/console-services/rbac-certificate-whitelist`
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+    sudo -H -u pe-puppet /opt/puppetlabs/puppet/bin/ncio \
+      --cert /etc/puppetlabs/puppet/ssl/certs/${HOSTNAME}.pem \
+      --key  /etc/puppetlabs/puppet/ssl/private_keys/${HOSTNAME}.pem \
+      backup > /var/tmp/backup.json
+    I, [2016-06-28T19:28:48.236257 #3148]  INFO -- : Backup completed successfully!
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/ncio.
-
+Bug reports and pull requests are welcome on GitHub at
+https://github.com/jeffmccune/ncio.
 
 ## License
 
-The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
-
+The gem is available as open source under the terms of the [MIT
+License](http://opensource.org/licenses/MIT).

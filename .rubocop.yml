@@ -1,0 +1,7 @@
+--- 
+AllCops:
+  Exclude:
+    - doc/**
+    - lib/ncio/trollop.rb
+    - ncio.gemspec
+    - Rakefile
