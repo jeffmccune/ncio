@@ -2,7 +2,7 @@ $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 require 'simplecov'
 SimpleCov.start do
   add_filter '/.bundle/'
-  add_filter '/lib/trollop.rb'
+  add_filter '/lib/ncio/trollop.rb'
 end
 require 'ncio'
 require 'ncio/version'
