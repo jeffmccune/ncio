@@ -19,7 +19,8 @@ module Ncio
       class ApiError < RuntimeError; end
 
       DEFAULT_HEADERS = {
-        'Content-Type' => 'application/json'
+        'Content-Type' => 'application/json',
+        'Transfer-Encoding' => 'chunked'
       }.freeze
 
       ##
@@ -67,6 +68,22 @@ module Ncio
           raise ApiError, msg
         end
         obj
+      end
+
+      ##
+      # Import all of the classification groups using the POST
+      # /v1/import-hierarchy endpoint.  See: [NC Import
+      # Hierarchy](https://docs.puppet.com/pe/2016.1/nc_import-hierarchy.html)
+      #
+      # @return [Boolean] true if the upload was successful
+      def import_hierarchy(stream)
+        uri = build_uri('import-hierarchy')
+        req = Net::HTTP::Post.new(uri, DEFAULT_HEADERS)
+        req.body_stream = stream
+        resp = connection.request(req)
+        return true if resp.code == '204'
+        msg = "Expected 204 response, got #{resp.code} body: #{resp.body}"
+        raise ApiError, msg
       end
 
       ##
