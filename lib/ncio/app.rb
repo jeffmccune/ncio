@@ -69,26 +69,41 @@ class App
   # Backup all groups in a manner suitable for the node classification hierarchy
   # import. See:
   # [NC Groups](https://docs.puppet.com/pe/2016.1/nc_groups.html#get-v1groups)
+  # rubocop:disable Metrics/AbcSize
   def backup_groups
-    debug "GET #{uri}/groups"
-    str = JSON.pretty_generate(api.groups)
-    debug "Write #{str.bytesize} bytes to #{file} ..."
+    warn "Starting Node Classification Backup using GET #{uri}/groups"
+    groups = api.groups
+    debug "Number of groups retrieved: #{groups.size}"
+    str = JSON.pretty_generate(groups)
+    debug "Write #{str.bytesize} bytes of JSON to #{file} ..."
     write_output(str, map_file_option(file))
-    info 'Backup completed successfully!'
+    warn 'Finished Node Classification Backup '\
+      "STATUS=OK BYTESIZE=#{str.bytesize} GROUPCOUNT=#{groups.size} "\
+      "OUTPUT=#{file}"
+  rescue Exception => e
+    fatal "ERROR Obtaining backup: #{format_error e}"
+    raise e
   end
+  # rubocop:enable Metrics/AbcSize
 
   ##
   # Restore all groups in a manner suitable for the node classification
   # hierarchy import. See: [NC Import
   # Hierarchy](https://docs.puppet.com/pe/2016.1/nc_import-hierarchy.html)
   def restore_groups
+    warn 'Starting Node Classification Restore using '\
+      "POST #{uri}/import-hierarchy"
     api = self.api
     debug "Open #{file} for streaming ..."
     input_stream(map_file_option(file)) do |stream|
       debug "POST #{uri}/import-hierarchy"
       api.import_hierarchy(stream)
     end
-    info 'Successfully restored node classification groups!'
+    warn 'Finished Node Classification Restore '\
+      "STATUS=OK INPUT=#{file}"
+  rescue Exception => e
+    fatal "ERROR Restoring backup: #{format_error e}"
+    raise e
   end
 
   ##
