@@ -9,8 +9,9 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Jeff McCune"]
   spec.email         = ["jeff@openinfrastructure.co"]
 
-  spec.summary       = %q{Puppet Node Classifier Import / Export}
-  spec.description   = %q{Puppet Node Classifier Import / Export}
+  spec.summary       = 'Puppet Node Classifier backup / restore / transform'
+  spec.description   = 'ncio is a small command line utility to backup, '\
+    'restore, and transform Puppet Enterprise Node Classification groups.'
   spec.homepage      = "https://www.openinfrastructure.co"
   spec.license       = "MIT"
 
