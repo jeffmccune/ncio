@@ -1,3 +1,7 @@
+require 'logger'
+require 'syslog/logger'
+require 'json'
+
 module Ncio
   ##
   # Support module to mix into other classes, particularly the application and
@@ -8,10 +12,26 @@ module Ncio
     attr_reader :opts
 
     def self.reset_logging!(opts)
+      logger = opts[:syslog] ? syslog_logger : stream_logger(opts)
+      @log = logger
+    end
+
+    ##
+    # Return a new Syslog::Logger instance configured for syslog output
+    def self.syslog_logger
+      # Use the daemon facility, matching Puppet behavior.
+      Syslog::Logger.new('ncio', Syslog::LOG_DAEMON)
+    end
+
+    ##
+    # Return a new Logger instance configured for file output
+    def self.stream_logger(opts)
       out = map_file_option(opts[:logto])
       logger = Logger.new(out)
-      logger.level = opts[:debug] ? Logger::DEBUG : Logger::INFO
-      @log = logger
+      logger.level = Logger::WARN
+      logger.level = Logger::INFO if opts[:verbose]
+      logger.level = Logger::DEBUG if opts[:debug]
+      logger
     end
 
     ##
@@ -62,13 +82,37 @@ module Ncio
     end
 
     ##
-    # Log an info message
+    # Logs a message at the fatal (syslog err) log level
+    def fatal(msg)
+      log.fatal msg
+    end
+
+    ##
+    # Logs a message at the error (syslog warning) log level.
+    # i.e. May indicate that an error will occur if action is not taken.
+    # e.g. A non-root file system has only 2GB remaining.
+    def error(msg)
+      log.error msg
+    end
+
+    ##
+    # Logs a message at the warn (syslog notice) log level.
+    # e.g. Events that are unusual, but not error conditions.
+    def warn(msg)
+      log.warn msg
+    end
+
+    ##
+    # Logs a message at the info (syslog info) log level
+    # i.e. Normal operational messages that require no action.
+    # e.g. An application has started, paused or ended successfully.
     def info(msg)
       log.info msg
     end
 
     ##
-    # Log a debug message
+    # Logs a message at the debug (syslog debug) log level
+    # i.e.  Information useful to developers for debugging the application.
     def debug(msg)
       log.debug msg
     end
@@ -103,6 +147,16 @@ module Ncio
       else
         File.open(input, 'r') { |stream| yield stream }
       end
+    end
+
+    ##
+    # Format an exception for logging.  JSON is used to aid centralized log
+    # systems such as Logstash and Splunk
+    #
+    # @param [Exception] e the exception to format
+    def format_error(e)
+      data = { error: "#{e.class}", message: e.message, backtrace: e.backtrace }
+      JSON.pretty_generate(data)
     end
 
     ##

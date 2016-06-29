@@ -1,4 +1,6 @@
 require 'ncio/version'
+require 'socket'
+
 # rubocop:disable Metrics/ModuleLength
 module Ncio
   module Support
@@ -70,7 +72,9 @@ module Ncio
           log_msg = 'Log file to write to or keywords '\
             'STDOUT, STDERR {NCIO_LOGTO}'
           opt :logto, log_msg, default: env['NCIO_LOGTO'] || 'STDERR'
-          opt :debug
+          opt :syslog, 'Log to syslog', default: true, conflicts: :logto
+          opt :verbose, 'Set log level to INFO'
+          opt :debug, 'Set log level to DEBUG'
         end
       end
       # rubocop:enable Metrics/MethodLength, Metrics/AbcSize

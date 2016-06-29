@@ -84,6 +84,33 @@ white-list of certificates is located at
       backup > /var/tmp/backup.json
     I, [2016-06-28T19:28:48.236257 #3148]  INFO -- : Backup completed successfully!
 
+## Logging
+
+The status of backup and restore operations are logged to the syslog by default.
+The `daemon` facility is used to ensure messages are written to files on a wide
+variety of systems that log daemon messages by default.  A general exception
+handler will log a backtrace in JSON format to help log processors and
+notification systems like Splunk and Logstash.
+
+Here's an example of a failed restore triggering the catch all handler:
+
+    Jun 29 12:12:21 Jeff-McCune ncio[51474]: ERROR Restoring backup: {
+      "error": "RuntimeError",
+      "message": "Some random error",
+      "backtrace": [
+        "/Users/jeff/projects/puppet/ncio/lib/ncio/app.rb:94:in `restore_groups'",
+        "/Users/jeff/projects/puppet/ncio/lib/ncio/app.rb:59:in `run'",
+        "/Users/jeff/projects/puppet/ncio/exe/ncio:5:in `<top (required)>'"
+      ]
+    }
+
+Log to the console using the `--no-syslog` command line option.
+
+    ncio --no-syslog restore --file backup.json
+
+The tool can only log to either syslog or the console at this time.  Multiple
+log destinations are not currently supported.
+
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at
