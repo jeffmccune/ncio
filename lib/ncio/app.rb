@@ -2,6 +2,7 @@
 require 'ncio'
 require 'ncio/support'
 require 'ncio/support/option_parsing'
+require 'ncio/support/transform'
 require 'ncio/trollop'
 require 'ncio/version'
 require 'ncio/api/v1'
@@ -17,6 +18,7 @@ class App
   # include support methods (option handling, logging, I/O helpers)
   include Ncio::Support
   include Ncio::Support::OptionParsing
+  include Ncio::Support::Transform
 
   ##
   # @param [Array] argv The argument vector, passed to the option parser.
@@ -47,6 +49,7 @@ class App
   #
   # @return [Fixnum] the exit code to pass to Kernel.exit in the calling
   #   script.
+  # rubocop:disable Metrics/MethodLength
   def run
     case opts[:subcommand]
     when 'backup'
@@ -55,8 +58,12 @@ class App
     when 'restore'
       restore_groups if opts[:groups]
       return 0
+    when 'transform'
+      transform_groups
+      return 0
     end
   end
+  # rubocop:enable Metrics/MethodLength
 
   ##
   # Backup all groups in a manner suitable for the node classification hierarchy
@@ -83,5 +90,25 @@ class App
     end
     info 'Successfully restored node classification groups!'
   end
+
+  ##
+  # Transform a backup produced with backup_groups.  The transformation is
+  # intended to allow restoration of the backup on PE Infrastructure cluster
+  # different from the one the backup was produced on.
+  #
+  # Currently only one PE cluster type is supported, the Monolithic master type.
+  # rubocop:disable Metrics/AbcSize
+  def transform_groups
+    # Read input
+    groups = JSON.parse(input_stream(opts[:input], &:read))
+    groups.map! do |group|
+      group_matches?(group) ? transform_group(group) : group
+    end
+    str = JSON.pretty_generate(groups)
+    debug "Write #{str.bytesize} bytes to #{opts[:output]} ..."
+    write_output(str, map_file_option(opts[:output]))
+    info 'Transformation completed successful!'
+  end
+  # rubocop:enable Metrics/AbcSize
 end
 end

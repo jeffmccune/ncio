@@ -8,7 +8,7 @@ and ready in the event the secondary master needs to take over service from the
 primary.
 
 
-## Transformation (TODO)
+## Transformation
 
 To achieve the goal of replicating node classification groups from one PE
 monolithic master to a secondary monolithic master, certain values need to be
@@ -36,8 +36,20 @@ To illustrate, consider the PuppetDB classification group:
       }
     }
 
-This group will need to have `"master1.puppet.vm"` transformed to
-`"master2.puppet.vm"` when imported for replication purposes.
+Transformation from master1 to master2 is possible:
+
+    export PATH="/opt/pupeptlabs/puppet/bin:$PATH"
+    ncio --uri https://master1.puppet.vm:4433/classification-api/v1 backup \
+     | ncio transform --hostname master1.puppet.vm:master2.puppet.vm \
+     | ncio --uri https://master2.puppet.vm:4433/classification-api/v1 restore
+
+This method of "replicating" node classification data has some caveats.  It's
+only been tested on PE Monolithic masters.  The method assumes master1 and
+master2 share the same Certificate Authority.  By default, only the default
+`puppet_enterprise` classification groups are transformed.
+
+Additional groups and classes may be processed by chaining transfomation
+processes and getting creative with the use of the `--class-matcher` option.
 
 ## Installation
 

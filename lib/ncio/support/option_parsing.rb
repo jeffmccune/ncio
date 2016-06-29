@@ -1,4 +1,5 @@
 require 'ncio/version'
+# rubocop:disable Metrics/ModuleLength
 module Ncio
   module Support
     ##
@@ -93,7 +94,7 @@ module Ncio
       # parsed.
       #
       # @return [Hash<Symbol, String>] Subcommand specific options hash
-      # rubocop:disable Metrics/MethodLength
+      # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
       def parse_subcommand_options!(subcommand, argv, env)
         case subcommand
         when 'backup', 'restore'
@@ -105,11 +106,55 @@ module Ncio
             file_default = FILE_DEFAULT_MAP[subcommand]
             opt :file, file_msg, default: env['NCIO_FILE'] || file_default
           end
+        when 'transform'
+          opts = Ncio::Trollop.options(argv) do
+            banner "Node Classification transformations\n"\
+              'Note: Currently only Monolithic (All-in-one) deployments are '\
+              "supported.\n\nTransformation matches against class names "\
+              'assigned to groups.  Transformation of hostnames happen '\
+              'against rules assigned to groups and class parameters for '\
+              "matching classes.\n\nOptions:"
+            hostname_msg = 'Replace the fully qualified domain name on the '\
+              'left with the right, separated with a : '\
+              'e.g --hostname master1.acme.com:master2.acme.com'
+            opt :class_matcher, 'Regexp matching classes assigned to groups. '\
+                'Passed to Regexp.new()',
+                default: '^puppet_enterprise'
+            opt :input, 'Input file path or keywords STDIN, STDOUT, STDERR',
+                default: 'STDIN'
+            opt :output, 'Output file path or keywords STDIN, STDOUT, STDERR',
+                default: 'STDOUT'
+            opt :hostname, hostname_msg, type: :strings, multi: true,
+                                         required: true
+          end
+          opts[:matcher] = Regexp.new(opts[:class_matcher])
+          if opts[:hostname_given]
+            hsh = map_hostnames(opts[:hostname].flatten)
+            opts.merge!(hostname_map: hsh)
+          end
         else
           Ncio::Trollop.die "Unknown subcommand: #{subcommand.inspect}"
         end
       end
-      # rubocop:enable Metrics/MethodLength
+      # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
+
+      ##
+      # Map an array of hostnames separated by a colon.  The left is the key of
+      # the map, the right is the value.  The Hash returned is "smart" in that a
+      # key that does not exist will return a value matching the key.
+      #
+      # @param [Array<String>] hostnames
+      #
+      # @return [Hash<String, String>] Hash of hostnames, left as key, right as
+      #   value.
+      def map_hostnames(hostnames)
+        smart_map = Hash.new { |_, key| key }
+        hostnames.each_with_object(smart_map) do |pair, hsh|
+          (k, v) = pair.split(':')
+          hsh[k] = v
+          hsh
+        end
+      end
 
       BANNER = <<-'EOBANNER'.freeze
 usage: ncio [GLOBAL OPTIONS] SUBCOMMAND [ARGS]
@@ -117,12 +162,19 @@ Sub Commands:
 
   backup     Backup Node Classification resources
   restore    Restore Node Classification resources
+  transform  Transform a backup, replacing hostnames
 
 Quick Start: On the host of the Node Classifier service, as root or pe-puppet
 (to read certs and keys)
 
     /opt/puppetlabs/puppet/bin/ncio backup > groups.$(date +%s).json
     /opt/puppetlabs/puppet/bin/ncio restore < groups.1467151827.json
+
+Transformation:
+
+    ncio --uri https://master1.puppet.vm:4433/classification-api/v1 backup \
+     | ncio transform --hostname master1.puppet.vm:master2.puppet.vm \
+     | ncio --uri https://master2.puppet.vm:4433/classification-api/v1 restore
 
 Global options: (Note, command line arguments supersede ENV vars in {}'s)
       EOBANNER
@@ -145,3 +197,4 @@ Global options: (Note, command line arguments supersede ENV vars in {}'s)
     end
   end
 end
+# rubocop:enable Metrics/ModuleLength

@@ -62,7 +62,7 @@
       [
         "=",
         "name",
-        "master1.puppet.vm"
+        "master2.puppet.vm"
       ]
     ],
     "variables": {
@@ -83,7 +83,7 @@
       [
         "=",
         "name",
-        "master1.puppet.vm"
+        "master2.puppet.vm"
       ]
     ],
     "variables": {
@@ -104,7 +104,7 @@
       [
         "=",
         "name",
-        "master1.puppet.vm"
+        "master2.puppet.vm"
       ]
     ],
     "variables": {
@@ -144,7 +144,7 @@
       [
         "=",
         "name",
-        "master1.puppet.vm"
+        "master2.puppet.vm"
       ]
     ],
     "variables": {
@@ -189,7 +189,7 @@
       [
         "=",
         "name",
-        "master1.puppet.vm"
+        "master2.puppet.vm"
       ]
     ],
     "variables": {
@@ -220,21 +220,21 @@
     "classes": {
       "puppet_enterprise": {
         "mcollective_middleware_hosts": [
-          "master1.puppet.vm"
+          "master2.puppet.vm"
         ],
         "use_application_services": true,
-        "database_host": "master1.puppet.vm",
-        "puppetdb_host": "master1.puppet.vm",
+        "database_host": "master2.puppet.vm",
+        "puppetdb_host": "master2.puppet.vm",
         "database_port": "5432",
         "database_ssl": true,
-        "puppet_master_host": "master1.puppet.vm",
-        "certificate_authority_host": "master1.puppet.vm",
+        "puppet_master_host": "master2.puppet.vm",
+        "certificate_authority_host": "master2.puppet.vm",
         "console_port": "443",
         "puppetdb_database_name": "pe-puppetdb",
         "puppetdb_database_user": "pe-puppetdb",
-        "pcp_broker_host": "master1.puppet.vm",
+        "pcp_broker_host": "master2.puppet.vm",
         "puppetdb_port": "8081",
-        "console_host": "master1.puppet.vm"
+        "console_host": "master2.puppet.vm"
       }
     }
   },
@@ -247,7 +247,7 @@
       [
         "=",
         "name",
-        "master1.puppet.vm"
+        "master2.puppet.vm"
       ]
     ],
     "variables": {
