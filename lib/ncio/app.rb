@@ -100,7 +100,7 @@ class App
   # rubocop:disable Metrics/AbcSize
   def transform_groups
     # Read input
-    groups = JSON.parse(input_stream(opts[:input], &:read))
+    groups = JSON.parse(input_stream(map_file_option(opts[:input]), &:read))
     groups.map! do |group|
       group_matches?(group) ? transform_group(group) : group
     end
