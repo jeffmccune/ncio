@@ -111,6 +111,56 @@ Log to the console using the `--no-syslog` command line option.
 The tool can only log to either syslog or the console at this time.  Multiple
 log destinations are not currently supported.
 
+## Replication
+
+A simple way to replicate node classification data between a primary and a
+secondary can be achieved with the following shell script.  Call this from cron
+on a periodic basis:
+
+```bash
+#! /bin/bash
+#
+# This shell script is intended to be executed from cron on a periodic basis.
+# The goal is to keep a Standby PE Monolithic master in sync with an active
+# Primary.  Pass the FQDN of the primary as ARG 1 and the FQDN of the secondary
+# as ARG 2
+#
+# In a DR situation when the secondary becomes active, block replication by
+# touching the lockfile.  This will prevent any changes made to the standby from
+# being clobbered as soon as the primary comes back online.
+#
+# Prior to re-enabling replication after a DR situation, replicate back to the
+# primary by reversing the direction of this script.
+
+set -euo pipefail
+
+PRIMARY="$1"
+STANDBY="$2"
+
+SOURCE="https://${PRIMARY}:4433/classification-api/v1"
+PATH="/opt/puppetlabs/puppet/bin:$PATH"
+lockfile='/etc/ncio_do_not_replicate'
+
+log() {
+  logger -t ncio-replicate -p daemon.warn -s "$1"
+}
+
+if [[ -e "$lockfile" ]]; then
+  log "WARN: Replication aborted, $lockfile exists!"
+  exit 1
+fi
+
+ncio --uri "$SOURCE" backup \
+  | ncio transform --hostname "${PRIMARY}:${STANDBY}" \
+  | ncio restore
+rval=$?
+
+[[ $rval -eq 0 ]] && STATUS='OK' || STATUS='ERROR'
+msg="INFO: Finished replicating puppet classification groups."
+log "$msg STATUS=${STATUS} EXITCODE=${rval} (touch $lockfile to disable)"
+exit $rval
+```
+
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at
