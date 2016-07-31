@@ -26,6 +26,21 @@ describe Ncio::App do
     end
   end
 
+  context 'When a timeout expired while trying to connect occurs' do
+    let :argv do
+      %w(--connect-timeout 5 backup)
+    end
+    # Mock the API call to thrown a conn refused
+    # Stub out the timer to not wait?
+    it 'prints a friendly error message' do
+      excp = Ncio::Support::RetryAction::RetryException::Timeout
+      msg = 'ERROR: Timeout expired connecting to the console service.  Verify it is up and running.'
+      allow(subject).to receive(:backup_groups).and_raise excp
+      expect(subject).to receive(:fatal).with(msg)
+      subject.run
+    end
+  end
+
   describe '#version' do
     it "is Ncio::Version (#{Ncio::VERSION})" do
       expect(subject.version).to eq(Ncio::VERSION)

@@ -1,6 +1,7 @@
-require 'logger'
-require 'syslog/logger'
 require 'json'
+require 'logger'
+require 'stringio'
+require 'syslog/logger'
 
 module Ncio
   ##
@@ -11,6 +12,10 @@ module Ncio
   module Support
     attr_reader :opts
 
+    ##
+    # Reset the global logger instance and return it as an object.
+    #
+    # @return [Logger] initialized logging instance
     def self.reset_logging!(opts)
       logger = opts[:syslog] ? syslog_logger : stream_logger(opts)
       @log = logger
@@ -38,7 +43,7 @@ module Ncio
     # Logging is handled centrally, the helper methods will delegate to the
     # centrally configured logging instance.
     def self.log
-      @log
+      @log || reset_logging!
     end
 
     ##
@@ -53,6 +58,7 @@ module Ncio
       when 'STDOUT' then $stdout
       when 'STDERR' then $stderr
       when 'STDIN' then $stdin
+      when 'STRING' then StringIO.new
       else File.expand_path(filepath)
       end
     end
@@ -155,8 +161,49 @@ module Ncio
     #
     # @param [Exception] e the exception to format
     def format_error(e)
-      data = { error: "#{e.class}", message: e.message, backtrace: e.backtrace }
+      data = { error: e.class.to_s, message: e.message, backtrace: e.backtrace }
       JSON.pretty_generate(data)
+    end
+
+    ##
+    # Top level exception handler and friendly error message handler.
+    def friendly_error(e)
+      case e
+      when Ncio::Support::RetryAction::RetryException::Timeout
+        'Timeout expired connecting to the console service.  Verify it is up and running.'
+      when OpenSSL::SSL::SSLError
+        friendly_ssl_error(e)
+      when Ncio::Api::V1::ApiAuthenticationError
+        'Make sure the --cert option value is listed in the certificate whitelist, '\
+        'and you are able to run puppet agent --test on the master. '\
+        'The certificate whitelist on the master is located at '\
+        '/etc/puppetlabs/console-services/rbac-certificate-whitelist'
+      else
+        e.message
+      end
+    end
+
+    ##
+    # Handle SSL errors as a special case
+    def friendly_ssl_error(e)
+      case e.message
+      when %r{read server hello A}
+        'The socket connected, but there is no SSL service on the other side. '\
+        'This is often the case with TCP forwarding, e.g. in Vagrant '\
+        'or with SSH tunnels.'
+      when %r{state=error: certificate verify failed}
+        'The socket connected, but the certificate presented by the service could not '\
+        'be verified.  Make sure the value of the --cacert option points to an identical '\
+        'copy of the /etc/puppetlabs/puppet/ssl/certs/ca.pem file from the master.'
+      when %r{returned=5 errno=0 state=SSLv3 read finished A}
+        "The socket connected, but got back SSL error: #{e.message} "\
+        'This usually means the value of the --cert and --key options are certificates '\
+        'which are not signed by the same CA the service trusts.  This can often happen '\
+        'if the service has recently been re-installed.  Please obtain a valid cert and key '\
+        'and try again.'
+      else
+        "SSL Error: The socket is listening but something went wrong: #{e.message}"
+      end
     end
 
     ##

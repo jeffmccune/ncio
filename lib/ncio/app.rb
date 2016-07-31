@@ -2,6 +2,7 @@
 require 'ncio'
 require 'ncio/support'
 require 'ncio/support/option_parsing'
+require 'ncio/support/retry_action'
 require 'ncio/support/transform'
 require 'ncio/trollop'
 require 'ncio/version'
@@ -62,6 +63,11 @@ class App
       transform_groups
       return 0
     end
+  rescue Exception => e
+    msg = "ERROR: #{friendly_error(e)}"
+    fatal msg
+    $stderr.puts msg
+    return 1
   end
   # rubocop:enable Metrics/MethodLength
 
@@ -90,6 +96,7 @@ class App
   # Restore all groups in a manner suitable for the node classification
   # hierarchy import. See: [NC Import
   # Hierarchy](https://docs.puppet.com/pe/2016.1/nc_import-hierarchy.html)
+  # rubocop:disable Lint/RescueException
   def restore_groups
     warn 'Starting Node Classification Restore using '\
       "POST #{uri}/import-hierarchy"
@@ -105,6 +112,7 @@ class App
     fatal "ERROR Restoring backup: #{format_error e}"
     raise e
   end
+  # rubocop:enable Lint/RescueException
 
   ##
   # Transform a backup produced with backup_groups.  The transformation is

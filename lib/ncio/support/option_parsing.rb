@@ -75,6 +75,13 @@ module Ncio
           opt :syslog, 'Log to syslog', default: true, conflicts: :logto
           opt :verbose, 'Set log level to INFO'
           opt :debug, 'Set log level to DEBUG'
+          opt :retry_connections, 'Retry API connections, '\
+              'e.g. waiting for the service to come online. '\
+              '{NCIO_RETRY_CONNECTIONS}',
+              default: (env['NCIO_RETRY_CONNECTIONS'] == 'true') || false
+          opt :connect_timeout, 'Retry <i> seconds if --retry-connections=true '\
+              '{NCIO_CONNECT_TIMEOUT}',
+              default: env['NCIO_CONNECT_TIMEOUT'] || CONNECT_TIMEOUT_DEFAULT
         end
       end
       # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
@@ -198,6 +205,8 @@ Global options: (Note, command line arguments supersede ENV vars in {}'s)
 
       # Map is indexed by the subcommand
       FILE_DEFAULT_MAP = { 'backup' => 'STDOUT', 'restore' => 'STDIN' }.freeze
+
+      CONNECT_TIMEOUT_DEFAULT = 120
     end
   end
 end
