@@ -1,5 +1,7 @@
 require 'ncio/api'
 require 'ncio/http_client'
+require 'ncio/support'
+require 'ncio/support/retry_action'
 require 'uri'
 require 'socket'
 require 'json'
@@ -17,6 +19,7 @@ module Ncio
       attr_reader :opts
 
       class ApiError < RuntimeError; end
+      class ApiAuthenticationError < RuntimeError; end
 
       DEFAULT_HEADERS = {
         'Content-Type' => 'application/json',
@@ -35,6 +38,10 @@ module Ncio
         @port = uri.port
       end
 
+      def log
+        Ncio::Support.log
+      end
+
       ##
       # Return a memoized HTTP connection
       def connection
@@ -50,6 +57,37 @@ module Ncio
       end
 
       ##
+      # Make a request respecting the timeout global option
+      #
+      # Assumes the timeout value is available in opts[:connect_timeout]
+      def request_with_timeout(req)
+        params = {
+          timeout: opts[:connect_timeout],
+          retry_exceptions: [Errno::ECONNREFUSED],
+          log: self.log,
+        }
+        Ncio::Support::RetryAction.retry_action(params) do
+          connection.request(req)
+        end
+      end
+
+      ##
+      # Make a request without a timeout
+      def request_without_timeout(req)
+        connection.request(req)
+      end
+
+      ##
+      # Make a request, return a response
+      def request(req)
+        if opts[:retry_connections]
+          request_with_timeout(req)
+        else
+          request_without_timeout(req)
+        end
+      end
+
+      ##
       # Return all of the groups currently defined in the node classifier API.
       #
       # @param [Boolean] inherited If set to any value besides 0 or false, the
@@ -60,14 +98,27 @@ module Ncio
       def groups(inherited = false)
         uri = build_uri('groups', inherited: inherited.to_s)
         req = Net::HTTP::Get.new(uri, DEFAULT_HEADERS)
-        resp = connection.request(req)
-        if resp.code == '200'
+        resp = request(req)
+        obj = if resp.code == '200'
+                JSON.parse(resp.body)
+              else
+                raise_on_non_200(resp, 200)
+              end
+        obj
+      end
+
+      ##
+      # Handle a non 200 response.
+      def raise_on_non_200(resp, expected_code=200)
+        if resp.code == '401' && %r{rbac/user-unauthenticated}.match(resp.body)
           obj = JSON.parse(resp.body)
+          msg = obj['msg'] || '401 User Unauthenticated Error'
+          raise ApiAuthenticationError, msg
         else
-          msg = "Expected 200 response, got #{resp.code} body: #{resp.body}"
+          msg = "Expected #{expected_code} response, got #{resp.code} "\
+                "body: #{resp.body}"
           raise ApiError, msg
         end
-        obj
       end
 
       ##
@@ -80,10 +131,9 @@ module Ncio
         uri = build_uri('import-hierarchy')
         req = Net::HTTP::Post.new(uri, DEFAULT_HEADERS)
         req.body_stream = stream
-        resp = connection.request(req)
+        resp = request(req)
         return true if resp.code == '204'
-        msg = "Expected 204 response, got #{resp.code} body: #{resp.body}"
-        raise ApiError, msg
+        raise_on_non_200(resp, 204)
       end
 
       ##

@@ -111,6 +111,20 @@ Log to the console using the `--no-syslog` command line option.
 The tool can only log to either syslog or the console at this time.  Multiple
 log destinations are not currently supported.
 
+## Retrying Connections
+
+It can take some time for the `pe-console-services` service to come online.  In
+an effort to make things are robust as possible consider using the
+`--retry-connections` global option.  This allows ncio to retry API connections
+while the service comes online.  This option has been added to address the
+following use case:
+
+    service start pe-console-services.service
+    ncio --retry-connections backup
+
+In this scenario ncio will retry API connections, eventually succeeding or
+timing out.  Ideally the service will come online before the timeout expires.
+
 ## Replication
 
 A simple way to replicate node classification data between a primary and a
@@ -150,9 +164,9 @@ if [[ -e "$lockfile" ]]; then
   exit 1
 fi
 
-ncio --uri "$SOURCE" backup \
+ncio --uri "$SOURCE" --retry-connections backup \
   | ncio transform --hostname "${PRIMARY}:${STANDBY}" \
-  | ncio restore
+  | ncio --retry-connections restore
 rval=$?
 
 [[ $rval -eq 0 ]] && STATUS='OK' || STATUS='ERROR'
