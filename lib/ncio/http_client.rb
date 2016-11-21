@@ -27,8 +27,8 @@ module Ncio
       host: Socket.gethostname,
       port: 4433,
       use_ssl: true,
-      cert: ssldir + '/certs/pe-internal-orchestrator.pem',
-      key: ssldir + '/private_keys/pe-internal-orchestrator.pem',
+      cert: "#{ssldir}/certs/#{Socket.gethostname}.pem",
+      key: "#{ssldir}/private_keys/#{Socket.gethostname}.pem",
       cacert: ssldir + '/certs/ca.pem'
     }.freeze
 
@@ -44,11 +44,11 @@ module Ncio
     #
     # @option opts [String] :cert The path to the PEM encoded client
     #   certificate.  Defaults to
-    #   `"/etc/puppetlabs/puppet/ssl/certs/pe-internal-orchestrator.pem"`
+    #   `"/etc/puppetlabs/puppet/ssl/certs/$FQDN.pem"`
     #
     # @option opts [String] :key The path to the PEM encoded RSA private key
     #   used for the SSL client connection.  Defaults to
-    #   `"/etc/puppetlabs/puppet/ssl/private_keys/pe-internal-orchestrator.pem"`
+    #   `"/etc/puppetlabs/puppet/ssl/private_keys/$FQDN.pem"`
     #
     # @option opts [String] :cacert The path to the PEM encoded CA certificate
     #   used to authenticate the service URL.  Defaults to

@@ -64,10 +64,11 @@ Install this tool on the same node running the node classification service:
 
 ## Usage
 
-If the file `/etc/puppetlabs/puppet/ssl/certs/pe-internal-orchestrator.pem`
-exists on the same node as the Node Classifier, then no configuration is
-necessary.  The default options will work to backup and restore node
-classification data.
+Ncio will attempt to use the host certificate from 
+`/etc/puppetlabs/puppet/ssl/certs/$FQDN.pem` if it exists on the same node as
+the Node Classifier.  If this certificate has sufficient access then no 
+configuration is necessary.  The default options will work to backup and 
+restore node classification data.
 
     sudo -H -u pe-puppet /opt/puppetlabs/puppet/bin/ncio backup > /var/tmp/backup.json
     I, [2016-06-28T19:25:55.507684 #2992]  INFO -- : Backup completed successfully!

@@ -190,15 +190,17 @@ Transformation:
 Global options: (Note, command line arguments supersede ENV vars in {}'s)
       EOBANNER
 
+      hostname = Socket.gethostname.downcase
+
       SSLDIR = '/etc/puppetlabs/puppet/ssl'.freeze
       CERT_MSG = 'White listed client SSL cert {NCIO_CERT} '\
         'See: https://goo.gl/zCjncC'.freeze
       CERT_DEFAULT = (SSLDIR + '/certs/'\
-                      'pe-internal-orchestrator.pem').freeze
+                      + hostname + '.pem').freeze
       KEY_MSG = 'Client RSA key, must match certificate '\
         '{NCIO_KEY}'.freeze
       KEY_DEFAULT = (SSLDIR + '/private_keys/'\
-                     'pe-internal-orchestrator.pem').freeze
+                     + hostname + '.pem').freeze
       CACERT_MSG = 'CA Cert to authenticate the service uri '\
         '{NCIO_CACERT}'.freeze
       CACERT_DEFAULT = (SSLDIR + '/certs/ca.pem').freeze
