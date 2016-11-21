@@ -1,3 +1,12 @@
+Version 2.0.0
+===
+
+ * Make fqdn certificate the default if it exists, fall back to
+   pe-internal-orchestrator if not.  This makes ncio more robust when the SSL
+   directory is copied from a PE install which had the orchestrator enabled and
+   the new PE install does not have the orchestrator enabled.  In such a
+   situation only the FQDN certificate is listed in the whitelist.
+
 Version 1.2.0
 ===
 
