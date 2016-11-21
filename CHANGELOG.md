@@ -1,3 +1,9 @@
+Version 1.2.0
+===
+
+ * PE 2016.4.2 Compatibility thanks to Geoff Williams [Issue
+   8](https://github.com/jeffmccune/ncio/issues/8)
+
 Version 1.1.0
 ===
 
