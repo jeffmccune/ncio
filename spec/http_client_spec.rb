@@ -22,12 +22,12 @@ describe 'Ncio::HttpClient' do
         expect(subject.use_ssl).to be(true)
       end
 
-      cert = "#{ssldir}/certs/pe-internal-orchestrator.pem"
+      cert = "#{ssldir}/certs/#{Socket.gethostname}.pem"
       it "sets cert to #{cert}" do
         expect(subject.cert).to eq(cert)
       end
 
-      key = "#{ssldir}/private_keys/pe-internal-orchestrator.pem"
+      key = "#{ssldir}/private_keys/#{Socket.gethostname}.pem"
       it "sets key to #{key}" do
         expect(subject.key).to eq(key)
       end

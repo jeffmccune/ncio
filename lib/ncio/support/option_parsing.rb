@@ -59,6 +59,8 @@ module Ncio
       def parse_global_options!(argv, env)
         semver = Ncio::VERSION
         host = Socket.gethostname
+        cert_default = self.cert_default
+        key_default  = self.key_default
         Ncio::Trollop.options(argv) do
           stop_on_unknown
           version "ncio #{semver} (c) 2016 Jeff McCune"
@@ -66,8 +68,8 @@ module Ncio
           uri_dfl = env['NCIO_URI'] || "https://#{host}:4433/classifier-api/v1"
           opt :uri, 'Node Classifier service uri '\
             '{NCIO_URI}', default: uri_dfl
-          opt :cert, CERT_MSG, default: env['NCIO_CERT'] || CERT_DEFAULT
-          opt :key, KEY_MSG, default: env['NCIO_KEY'] || KEY_DEFAULT
+          opt :cert, CERT_MSG, default: env['NCIO_CERT'] || cert_default
+          opt :key, KEY_MSG, default: env['NCIO_KEY'] || key_default
           opt :cacert, CACERT_MSG, default: env['NCIO_CACERT'] || CACERT_DEFAULT
           log_msg = 'Log file to write to or keywords '\
             'STDOUT, STDERR {NCIO_LOGTO}'
@@ -167,6 +169,22 @@ module Ncio
         end
       end
 
+      def self.pem_exists?(name)
+        File.exist?(SSLDIR + "/certs/#{name}.pem")
+      end
+
+      def certname
+        NAMES.find { |n| Ncio::Support::OptionParsing.pem_exists?(n) } || NAMES.last
+      end
+
+      def cert_default
+        SSLDIR + "/certs/#{certname}.pem"
+      end
+
+      def key_default
+        SSLDIR + "/private_keys/#{certname}.pem"
+      end
+
       BANNER = <<-'EOBANNER'.freeze
 usage: ncio [GLOBAL OPTIONS] SUBCOMMAND [ARGS]
 Sub Commands:
@@ -190,15 +208,15 @@ Transformation:
 Global options: (Note, command line arguments supersede ENV vars in {}'s)
       EOBANNER
 
+      # Names used to look for the default client certificate
+      NAMES = ['pe-internal-orchestrator', Socket.gethostname.downcase]
+
       SSLDIR = '/etc/puppetlabs/puppet/ssl'.freeze
+
       CERT_MSG = 'White listed client SSL cert {NCIO_CERT} '\
         'See: https://goo.gl/zCjncC'.freeze
-      CERT_DEFAULT = (SSLDIR + '/certs/'\
-                      'pe-internal-orchestrator.pem').freeze
       KEY_MSG = 'Client RSA key, must match certificate '\
         '{NCIO_KEY}'.freeze
-      KEY_DEFAULT = (SSLDIR + '/private_keys/'\
-                     'pe-internal-orchestrator.pem').freeze
       CACERT_MSG = 'CA Cert to authenticate the service uri '\
         '{NCIO_CACERT}'.freeze
       CACERT_DEFAULT = (SSLDIR + '/certs/ca.pem').freeze
