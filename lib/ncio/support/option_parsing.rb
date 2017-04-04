@@ -174,7 +174,7 @@ module Ncio
       end
 
       def certname
-        NAMES.find { |n| Ncio::Support::OptionParsing.pem_exists?(n) } || NAMES.last
+        NAMES.find { |n| Ncio::Support::OptionParsing.pem_exists?(n) } || NAMES.first
       end
 
       def cert_default
@@ -209,7 +209,7 @@ Global options: (Note, command line arguments supersede ENV vars in {}'s)
       EOBANNER
 
       # Names used to look for the default client certificate
-      NAMES = ['pe-internal-orchestrator', Socket.gethostname.downcase]
+      NAMES = [Socket.gethostname.downcase, 'pe-internal-orchestrator']
 
       SSLDIR = '/etc/puppetlabs/puppet/ssl'.freeze
 
