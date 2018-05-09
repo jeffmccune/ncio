@@ -23,7 +23,6 @@ module Ncio
 
       DEFAULT_HEADERS = {
         'Content-Type' => 'application/json',
-        'Transfer-Encoding' => 'chunked'
       }.freeze
 
       ##
