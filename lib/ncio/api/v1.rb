@@ -23,7 +23,6 @@ module Ncio
 
       DEFAULT_HEADERS = {
         'Content-Type' => 'application/json',
-        'Transfer-Encoding' => 'chunked'
       }.freeze
 
       ##
@@ -130,6 +129,7 @@ module Ncio
       def import_hierarchy(stream)
         uri = build_uri('import-hierarchy')
         req = Net::HTTP::Post.new(uri, DEFAULT_HEADERS)
+        req['Transfer-Encoding'] = ['chunked']
         req.body_stream = stream
         resp = request(req)
         return true if resp.code == '204'
