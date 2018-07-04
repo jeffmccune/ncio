@@ -1,3 +1,8 @@
+Version 2.0.2
+===
+
+ * Update gem dependencies to address CVE-2017-8418 and CVE-2017-17042.
+
 Version 2.0.1
 ===
 
