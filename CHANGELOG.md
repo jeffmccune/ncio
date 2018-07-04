@@ -1,3 +1,10 @@
+Version 2.0.1
+===
+
+ * Fix ncio with PE > 2017.2  Previous versions hang with requests with
+   Transfer-Encoding: chunked.  Thanks to Dylan Ratcliffe and Geoff Williams for
+   the fix.
+
 Version 2.0.0
 ===
 
